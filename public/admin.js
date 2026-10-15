@@ -157,7 +157,7 @@
       <details class="card" ${sessionStorage.getItem('kinobar-design') === '1' ? 'open' : ''} id="design">
         <summary><b>🎨 Оформление экрана: фон, анимация, ролики</b></summary>
         <div class="row" style="margin-top:12px; align-items:flex-start">
-          <div class="f">Фон (картинка или видео)
+          ${screen.layout === 'slides' ? '' : `<div class="f">Фон (картинка или видео)
             <div class="row">
               <button class="thumb-btn big" data-act="pick-bg" data-screen="${si}">${thumb(screen.background, 'выбрать фон')}</button>
               ${screen.background ? `<button class="ghost danger" data-act="clear-bg" data-screen="${si}">Убрать фон</button>` : ''}
@@ -165,11 +165,12 @@
           </div>
           <label class="f">Затемнение фона, чтобы цены читались: ${screen.dim ?? 55}%
             <input type="range" min="0" max="90" step="5" data-screen="${si}" data-field="dim" data-num="1" data-rerender="1" value="${screen.dim ?? 55}">
-          </label>
+          </label>`}
           <label class="f">Вид меню
             <select data-screen="${si}" data-field="layout">
               <option value="list" ${screen.layout !== 'cards' ? 'selected' : ''}>Список (название …… цена)</option>
               <option value="cards" ${screen.layout === 'cards' ? 'selected' : ''}>Карточки с большими фото</option>
+              <option value="slides" ${screen.layout === 'slides' ? 'selected' : ''}>Слайды дизайнера + живые цены</option>
             </select>
           </label>
           <label class="f">Анимация поверх фона
@@ -190,6 +191,7 @@
           </div>
         </div>
       </details>
+      ${screen.layout === 'slides' ? slideEd.html(si) + '<div class="card"><b>Цены этого экрана</b> <span class="muted">— меняете здесь, на слайдах обновится само</span></div>' : ''}
       ${cats}
       <button data-act="add-cat" data-screen="${si}">+ Добавить раздел</button>`;
   }
@@ -336,6 +338,8 @@
       : '<span class="muted">Пока ничего не загружено</span>';
   }
 
+  const slideEd = window.KinobarSlideEditor({ getMenu: () => menu, render, updateState: () => updateState(), pickMedia, thumb });
+
   // ---------- editing ----------
 
   function itemAt(path) {
@@ -355,6 +359,7 @@
   main.addEventListener('input', (e) => {
     const el = e.target;
     const field = el.dataset.field;
+    if (slideEd.onInput(el)) return updateState();
     if (el.dataset.path) {
       const { item } = itemAt(el.dataset.path);
       if (el.type === 'checkbox') {
@@ -366,6 +371,7 @@
         const [si, ci, ii] = el.dataset.path.split('.').map(Number);
         const old = savedItem(menu.screens[si], ci, ii);
         el.classList.toggle('changed', !old || old.price !== item.price);
+        slideEd.refreshAll(si);
       } else if (field === 'oldPrice') {
         if (el.value === '') delete item.oldPrice; else item.oldPrice = Number(el.value);
       } else {
@@ -381,6 +387,7 @@
       else promo[field] = Number(el.value);
     } else if (el.dataset.screen) {
       menu.screens[Number(el.dataset.screen)][field] = el.dataset.num ? Number(el.value) || 0 : el.value;
+      if (field === 'layout') return render();
       if (el.dataset.rerender) { const label = el.closest('label'); if (label) label.firstChild.textContent = `Затемнение фона, чтобы цены читались: ${el.value}%`; }
     } else if (el.dataset.settings) {
       menu.settings = menu.settings || {};
@@ -411,6 +418,7 @@
     const btn = e.target.closest('button[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
+    if (await slideEd.onClick(btn)) return;
     if (act === 'pick-item-image') {
       const { item } = itemAt(btn.dataset.path);
       const url = await pickMedia({ videos: false, title: `Фото: ${item.name || 'позиция'}` });
@@ -457,7 +465,7 @@
     }
     if (act === 'add-item') {
       const { cat } = catAt(btn.dataset.cat);
-      cat.items.push({ name: '', size: '', price: 0, available: true });
+      cat.items.push({ id: slideEd.newId(), name: '', size: '', price: 0, available: true });
       render();
       const inputs = main.querySelectorAll(`input[data-path^="${btn.dataset.cat}."][data-field="name"]`);
       inputs[inputs.length - 1].focus();

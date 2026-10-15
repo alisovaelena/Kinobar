@@ -35,9 +35,17 @@
     document.title = `Кинобар — ${screen.title}`;
     root.style.setProperty('--accent', screen.accent || '#ffb400');
     root.style.setProperty('--dim', String((screen.dim ?? 55) / 100));
-    setBackground(screen.background);
     window.KinobarEffects.set(screen.effect || 'none', screen.accent);
     schedulePromos(screen);
+    document.body.classList.toggle('slides-mode', screen.layout === 'slides');
+    if (screen.layout === 'slides') {
+      setBackground('');
+      inner.innerHTML = '';
+      window.KinobarSlides.render(menu, screen);
+      return;
+    }
+    window.KinobarSlides.stop();
+    setBackground(screen.background);
 
     const currency = (menu.settings && menu.settings.currency) || '';
     const cards = screen.layout === 'cards';
@@ -86,7 +94,7 @@
 
   // Pick the column count and the largest font size that fit the whole menu on the TV.
   function fit() {
-    if (!inner.querySelector('.cols')) return;
+    if (!inner.querySelector('.cols') || document.body.classList.contains('slides-mode')) return;
     inner.classList.add('measuring');
     const cards = inner.classList.contains('layout-cards');
     const maxW = inner.clientWidth;

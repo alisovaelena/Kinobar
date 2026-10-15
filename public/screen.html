@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Кинобар — экран</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
   :root { --accent: #ffb400; --bg: #0d0d12; --fg: #f5f5f7; --muted: #a3a3b5; --dim: .55; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,6 +76,33 @@
   @keyframes float { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-.25em) rotate(1.5deg); } }
   @keyframes flash { 0%, 40% { color: #fff; text-shadow: 0 0 .5em var(--accent), 0 0 1em var(--accent); } 100% { } }
 
+  /* slides layout: designer pictures with live prices on top */
+  #slides { position: fixed; inset: 0; display: none; background: #000; }
+  .slides-mode #slides { display: block; }
+  .slides-mode #board { display: none; }
+  .slides-mode #fx { z-index: 2; }
+  .slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 1s ease; }
+  .slide.active { opacity: 1; z-index: 1; }
+  .slide.fx-slide { transform: translateX(6%); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1); }
+  .slide.fx-slide.active { transform: none; }
+  .slide.fx-zoom { transform: scale(1.12); transition: opacity .9s ease, transform 1.2s cubic-bezier(.2,.8,.2,1); }
+  .slide.fx-zoom.active { transform: none; }
+  .stage { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; overflow: hidden; container-type: size; }
+  .stage .sbg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .zoomer { position: absolute; inset: 0; transform-origin: 60% 50%; }
+  .slide.active .zoomer.kb { animation: kb var(--dur, 10s) ease-out both; }
+  @keyframes kb { from { transform: scale(1); } to { transform: scale(1.07); } }
+  .label { position: absolute; white-space: pre; line-height: 1; font-size: calc(var(--size, 8) * 1cqh);
+    transform: translate(var(--tx), -50%); transform-origin: var(--origin, center); }
+  @keyframes lpulse { 0%, 100% { transform: translate(var(--tx), -50%) scale(1); } 50% { transform: translate(var(--tx), -50%) scale(1.07); } }
+  .label.shadow { text-shadow: 0 .04em .12em rgba(0,0,0,.55); }
+  .label.out { opacity: .45; text-decoration: line-through; }
+  .slide.active .label { animation: pop .8s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(var(--i, 0) * 120ms + 400ms); }
+  .slide.active .label.pulse { animation: pop .8s cubic-bezier(.2,1.4,.4,1) both calc(var(--i, 0) * 120ms + 400ms),
+    lpulse 2.6s ease-in-out calc(var(--i, 0) * 120ms + 1.4s) infinite; }
+  .label.flash { animation: flash 2.4s ease-out !important; }
+  @keyframes pop { from { opacity: 0; transform: translate(var(--tx), -50%) scale(.6); } to { opacity: 1; transform: translate(var(--tx), -50%) scale(1); } }
   #status { position: fixed; right: 10px; bottom: 10px; width: 10px; height: 10px; border-radius: 50%;
     background: #e5484d; opacity: 0; transition: opacity .3s; }
   #status.offline { opacity: 1; }
@@ -86,11 +114,13 @@
 <div id="bg" class="empty"></div>
 <canvas id="fx"></canvas>
 <div id="board"><div id="inner"></div></div>
+<div id="slides"></div>
 <div id="promo"></div>
 <div id="status" title="Нет связи с сервером"></div>
 <div id="error"></div>
 <script src="/common.js"></script>
 <script src="/effects.js"></script>
+<script src="/slides.js"></script>
 <script src="/screen.js"></script>
 </body>
 </html>

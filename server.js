@@ -44,7 +44,18 @@ function loadMenu() {
   const menu = JSON.parse(fs.readFileSync(file, 'utf8'));
   const errors = validateMenu(menu);
   if (errors.length) throw new Error(`Invalid menu in ${file}: ${errors.join('; ')}`);
+  ensureItemIds(menu);
   return menu;
+}
+
+// Slides point at menu items by id, so every item needs a stable one.
+function ensureItemIds(m) {
+  for (const screen of m.screens) {
+    for (const cat of screen.categories) {
+      for (const item of cat.items) if (!item.id) item.id = 'i' + crypto.randomBytes(4).toString('hex');
+    }
+  }
+  return m;
 }
 
 function saveMenu(menu) {
@@ -71,7 +82,21 @@ function validateMenu(menu) {
     const where = `screens[${si}]`;
     if (!Number.isInteger(screen.id) || screen.id < 1) errors.push(`${where}.id must be a positive integer`);
     if (typeof screen.title !== 'string') errors.push(`${where}.title must be a string`);
-    if (screen.layout !== undefined && !['list', 'cards'].includes(screen.layout)) errors.push(`${where}.layout must be list or cards`);
+    if (screen.layout !== undefined && !['list', 'cards', 'slides'].includes(screen.layout)) errors.push(`${where}.layout must be list, cards or slides`);
+    if (screen.slides !== undefined) {
+      if (!Array.isArray(screen.slides)) errors.push(`${where}.slides must be an array`);
+      else screen.slides.forEach((slide, sl) => {
+        const sw = `${where}.slides[${sl}]`;
+        if (!slide || typeof slide !== 'object') return errors.push(`${sw} must be an object`);
+        checkMedia(errors, `${sw}.background`, slide.background);
+        if (slide.labels !== undefined && !Array.isArray(slide.labels)) errors.push(`${sw}.labels must be an array`);
+        (slide.labels || []).forEach((label, li) => {
+          const lw = `${sw}.labels[${li}]`;
+          if (!label || !['price', 'text'].includes(label.type)) errors.push(`${lw}.type must be price or text`);
+          else if (!Number.isFinite(label.x) || !Number.isFinite(label.y)) errors.push(`${lw} needs x and y`);
+        });
+      });
+    }
     checkMedia(errors, `${where}.background`, screen.background);
     if (screen.promos !== undefined) {
       if (!Array.isArray(screen.promos)) errors.push(`${where}.promos must be an array`);
@@ -95,6 +120,7 @@ function validateMenu(menu) {
           errors.push(`${iw}.price must be a non-negative number`);
         }
         checkMedia(errors, `${iw}.image`, item.image);
+        if (item.id !== undefined && typeof item.id !== 'string') errors.push(`${iw}.id must be a string`);
       });
     });
   });
@@ -299,6 +325,7 @@ async function handle(req, res) {
     }
     const errors = validateMenu(next);
     if (errors.length) return sendJson(res, 400, { error: 'Ошибка в данных', details: errors });
+    ensureItemIds(next);
     saveMenu(next);
     menu = next;
     version = Date.now();

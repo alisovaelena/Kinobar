@@ -133,3 +133,29 @@ test('serves demo video with range support', async () => {
   const res = await fetch(`${base}/demo/promo-combo.webm`, { headers: { Range: 'bytes=0-9' } });
   assert.strictEqual(res.status, 206);
 });
+
+test('every item gets a stable id for slide price labels', async () => {
+  const { menu } = await (await fetch(`${base}/api/menu`)).json();
+  const ids = menu.screens.flatMap((s) => s.categories.flatMap((c) => c.items.map((i) => i.id)));
+  assert.ok(ids.every((id) => typeof id === 'string' && id.length > 1));
+  assert.strictEqual(new Set(ids).size, ids.length);
+});
+
+test('saves slides with price labels and rejects broken ones', async () => {
+  const { menu } = await (await fetch(`${base}/api/menu`)).json();
+  const item = menu.screens[0].categories[0].items[0];
+  menu.screens[0].layout = 'slides';
+  menu.screens[0].slides = [{ background: '/demo/popcorn.svg', seconds: 8, labels: [
+    { type: 'price', item: item.id, x: 33.6, y: 49, size: 8.6, suffix: ' Р' },
+    { type: 'text', text: 'Хит недели', x: 10, y: 10 },
+  ] }];
+  assert.strictEqual((await fetch(`${base}/api/menu`, { method: 'PUT', headers: auth, body: JSON.stringify(menu) })).status, 200);
+  const saved = (await (await fetch(`${base}/api/menu`)).json()).menu;
+  assert.strictEqual(saved.screens[0].slides[0].labels[0].item, item.id);
+
+  menu.screens[0].slides[0].labels.push({ type: 'price', item: item.id });
+  assert.strictEqual((await fetch(`${base}/api/menu`, { method: 'PUT', headers: auth, body: JSON.stringify(menu) })).status, 400);
+  menu.screens[0].slides[0].labels.pop();
+  menu.screens[0].slides[0].background = 'http://example.com/a.jpg';
+  assert.strictEqual((await fetch(`${base}/api/menu`, { method: 'PUT', headers: auth, body: JSON.stringify(menu) })).status, 400);
+});
