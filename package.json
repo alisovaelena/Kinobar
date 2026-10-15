@@ -1,0 +1,12 @@
+{
+  "name": "kinobar-menu",
+  "version": "1.0.0",
+  "description": "Электронное меню кинобара: 5 телевизоров + менеджерская для смены цен",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=18" }
+}

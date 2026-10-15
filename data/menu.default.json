@@ -1,0 +1,110 @@
+{
+  "settings": {
+    "currency": "₽"
+  },
+  "screens": [
+    {
+      "id": 1,
+      "title": "Попкорн",
+      "accent": "#ffb400",
+      "categories": [
+        {
+          "name": "Солёный",
+          "items": [
+            { "name": "Попкорн солёный", "size": "S · 1,5 л", "price": 290, "available": true },
+            { "name": "Попкорн солёный", "size": "M · 3 л", "price": 390, "available": true },
+            { "name": "Попкорн солёный", "size": "L · 5 л", "price": 490, "available": true }
+          ]
+        },
+        {
+          "name": "Сладкий",
+          "items": [
+            { "name": "Попкорн сладкий", "size": "S · 1,5 л", "price": 320, "available": true },
+            { "name": "Попкорн сладкий", "size": "M · 3 л", "price": 420, "available": true },
+            { "name": "Попкорн карамельный", "size": "L · 5 л", "price": 550, "available": true, "hit": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Комбо",
+      "accent": "#ff4d6d",
+      "categories": [
+        {
+          "name": "Наборы",
+          "items": [
+            { "name": "Комбо «Соло»", "size": "попкорн M + напиток 0,5", "price": 590, "oldPrice": 680, "available": true },
+            { "name": "Комбо «Для двоих»", "size": "попкорн L + 2 напитка 0,5", "price": 890, "oldPrice": 1040, "available": true, "hit": true },
+            { "name": "Комбо «Семейный»", "size": "2 попкорна L + 4 напитка", "price": 1590, "available": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Напитки",
+      "accent": "#3fa9f5",
+      "categories": [
+        {
+          "name": "Газированные",
+          "items": [
+            { "name": "Кола", "size": "0,5 л", "price": 190, "available": true },
+            { "name": "Кола", "size": "0,8 л", "price": 250, "available": true },
+            { "name": "Лимонад", "size": "0,5 л", "price": 190, "available": true }
+          ]
+        },
+        {
+          "name": "Без газа",
+          "items": [
+            { "name": "Вода", "size": "0,5 л", "price": 120, "available": true },
+            { "name": "Сок", "size": "0,3 л", "price": 150, "available": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Снэки",
+      "accent": "#7bd389",
+      "categories": [
+        {
+          "name": "Закуски",
+          "items": [
+            { "name": "Начос с сырным соусом", "size": "150 г", "price": 350, "available": true },
+            { "name": "Хот-дог", "size": "", "price": 290, "available": true },
+            { "name": "Чипсы", "size": "70 г", "price": 160, "available": true }
+          ]
+        },
+        {
+          "name": "Сладости",
+          "items": [
+            { "name": "Шоколадный батончик", "size": "50 г", "price": 110, "available": true },
+            { "name": "Мармелад", "size": "100 г", "price": 180, "available": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Кофе и чай",
+      "accent": "#c08552",
+      "categories": [
+        {
+          "name": "Кофе",
+          "items": [
+            { "name": "Американо", "size": "0,3 л", "price": 180, "available": true },
+            { "name": "Капучино", "size": "0,3 л", "price": 220, "available": true },
+            { "name": "Латте", "size": "0,4 л", "price": 250, "available": true }
+          ]
+        },
+        {
+          "name": "Чай",
+          "items": [
+            { "name": "Чай чёрный / зелёный", "size": "0,3 л", "price": 140, "available": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

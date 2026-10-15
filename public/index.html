@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кинобар</title>
+<style>
+  body { font: 16px/1.5 "Segoe UI", Roboto, Arial, sans-serif; background: #0d0d12; color: #f5f5f7; padding: 24px; }
+  a { color: #ffb400; display: block; font-size: 20px; margin: 6px 0; }
+</style>
+</head>
+<body>
+<h1>🍿 Кинобар</h1>
+<a href="/admin">Менеджерская (цены)</a>
+<div id="screens"></div>
+<script>
+  fetch('/api/menu').then((r) => r.json()).then(({ menu }) => {
+    document.getElementById('screens').innerHTML = menu.screens
+      .map((s) => `<a href="/screen/${s.id}">ТВ ${s.id}</a>`).join('');
+  });
+</script>
+</body>
+</html>
