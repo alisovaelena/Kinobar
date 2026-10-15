@@ -11,20 +11,61 @@
         {
           "name": "Солёный",
           "items": [
-            { "name": "Попкорн солёный", "size": "S · 1,5 л", "price": 290, "available": true },
-            { "name": "Попкорн солёный", "size": "M · 3 л", "price": 390, "available": true },
-            { "name": "Попкорн солёный", "size": "L · 5 л", "price": 490, "available": true }
+            {
+              "name": "Попкорн солёный",
+              "size": "S · 1,5 л",
+              "price": 290,
+              "available": true,
+              "image": "/demo/popcorn.svg"
+            },
+            {
+              "name": "Попкорн солёный",
+              "size": "M · 3 л",
+              "price": 390,
+              "available": true,
+              "image": "/demo/popcorn.svg"
+            },
+            {
+              "name": "Попкорн солёный",
+              "size": "L · 5 л",
+              "price": 490,
+              "available": true,
+              "image": "/demo/popcorn.svg"
+            }
           ]
         },
         {
           "name": "Сладкий",
           "items": [
-            { "name": "Попкорн сладкий", "size": "S · 1,5 л", "price": 320, "available": true },
-            { "name": "Попкорн сладкий", "size": "M · 3 л", "price": 420, "available": true },
-            { "name": "Попкорн карамельный", "size": "L · 5 л", "price": 550, "available": true, "hit": true }
+            {
+              "name": "Попкорн сладкий",
+              "size": "S · 1,5 л",
+              "price": 320,
+              "available": true,
+              "image": "/demo/popcorn.svg"
+            },
+            {
+              "name": "Попкорн сладкий",
+              "size": "M · 3 л",
+              "price": 420,
+              "available": true,
+              "image": "/demo/popcorn.svg"
+            },
+            {
+              "name": "Попкорн карамельный",
+              "size": "L · 5 л",
+              "price": 550,
+              "available": true,
+              "hit": true,
+              "image": "/demo/caramel.svg"
+            }
           ]
         }
-      ]
+      ],
+      "layout": "list",
+      "effect": "popcorn",
+      "background": "/demo/bg-popcorn.webm",
+      "dim": 40
     },
     {
       "id": 2,
@@ -34,12 +75,41 @@
         {
           "name": "Наборы",
           "items": [
-            { "name": "Комбо «Соло»", "size": "попкорн M + напиток 0,5", "price": 590, "oldPrice": 680, "available": true },
-            { "name": "Комбо «Для двоих»", "size": "попкорн L + 2 напитка 0,5", "price": 890, "oldPrice": 1040, "available": true, "hit": true },
-            { "name": "Комбо «Семейный»", "size": "2 попкорна L + 4 напитка", "price": 1590, "available": true }
+            {
+              "name": "Комбо «Соло»",
+              "size": "попкорн M + напиток 0,5",
+              "price": 590,
+              "oldPrice": 680,
+              "available": true,
+              "image": "/demo/combo.svg"
+            },
+            {
+              "name": "Комбо «Для двоих»",
+              "size": "попкорн L + 2 напитка 0,5",
+              "price": 890,
+              "oldPrice": 1040,
+              "available": true,
+              "hit": true,
+              "image": "/demo/combo.svg"
+            },
+            {
+              "name": "Комбо «Семейный»",
+              "size": "2 попкорна L + 4 напитка",
+              "price": 1590,
+              "available": true,
+              "image": "/demo/combo.svg"
+            }
           ]
         }
-      ]
+      ],
+      "layout": "cards",
+      "effect": "sparkles",
+      "promos": [
+        {
+          "file": "/demo/promo-combo.webm"
+        }
+      ],
+      "promoEvery": 60
     },
     {
       "id": 3,
@@ -49,19 +119,53 @@
         {
           "name": "Газированные",
           "items": [
-            { "name": "Кола", "size": "0,5 л", "price": 190, "available": true },
-            { "name": "Кола", "size": "0,8 л", "price": 250, "available": true },
-            { "name": "Лимонад", "size": "0,5 л", "price": 190, "available": true }
+            {
+              "name": "Кола",
+              "size": "0,5 л",
+              "price": 190,
+              "available": true,
+              "image": "/demo/cola.svg"
+            },
+            {
+              "name": "Кола",
+              "size": "0,8 л",
+              "price": 250,
+              "available": true,
+              "image": "/demo/cola.svg"
+            },
+            {
+              "name": "Лимонад",
+              "size": "0,5 л",
+              "price": 190,
+              "available": true,
+              "image": "/demo/lemonade.svg"
+            }
           ]
         },
         {
           "name": "Без газа",
           "items": [
-            { "name": "Вода", "size": "0,5 л", "price": 120, "available": true },
-            { "name": "Сок", "size": "0,3 л", "price": 150, "available": true }
+            {
+              "name": "Вода",
+              "size": "0,5 л",
+              "price": 120,
+              "available": true,
+              "image": "/demo/water.svg"
+            },
+            {
+              "name": "Сок",
+              "size": "0,3 л",
+              "price": 150,
+              "available": true,
+              "image": "/demo/juice.svg"
+            }
           ]
         }
-      ]
+      ],
+      "layout": "cards",
+      "effect": "bubbles",
+      "background": "/demo/bg-drinks.webm",
+      "dim": 35
     },
     {
       "id": 4,
@@ -71,19 +175,51 @@
         {
           "name": "Закуски",
           "items": [
-            { "name": "Начос с сырным соусом", "size": "150 г", "price": 350, "available": true },
-            { "name": "Хот-дог", "size": "", "price": 290, "available": true },
-            { "name": "Чипсы", "size": "70 г", "price": 160, "available": true }
+            {
+              "name": "Начос с сырным соусом",
+              "size": "150 г",
+              "price": 350,
+              "available": true,
+              "image": "/demo/nachos.svg"
+            },
+            {
+              "name": "Хот-дог",
+              "size": "",
+              "price": 290,
+              "available": true,
+              "image": "/demo/hotdog.svg"
+            },
+            {
+              "name": "Чипсы",
+              "size": "70 г",
+              "price": 160,
+              "available": true,
+              "image": "/demo/chips.svg"
+            }
           ]
         },
         {
           "name": "Сладости",
           "items": [
-            { "name": "Шоколадный батончик", "size": "50 г", "price": 110, "available": true },
-            { "name": "Мармелад", "size": "100 г", "price": 180, "available": true }
+            {
+              "name": "Шоколадный батончик",
+              "size": "50 г",
+              "price": 110,
+              "available": true,
+              "image": "/demo/chocolate.svg"
+            },
+            {
+              "name": "Мармелад",
+              "size": "100 г",
+              "price": 180,
+              "available": true,
+              "image": "/demo/gummy.svg"
+            }
           ]
         }
-      ]
+      ],
+      "layout": "cards",
+      "effect": "none"
     },
     {
       "id": 5,
@@ -93,18 +229,44 @@
         {
           "name": "Кофе",
           "items": [
-            { "name": "Американо", "size": "0,3 л", "price": 180, "available": true },
-            { "name": "Капучино", "size": "0,3 л", "price": 220, "available": true },
-            { "name": "Латте", "size": "0,4 л", "price": 250, "available": true }
+            {
+              "name": "Американо",
+              "size": "0,3 л",
+              "price": 180,
+              "available": true,
+              "image": "/demo/coffee.svg"
+            },
+            {
+              "name": "Капучино",
+              "size": "0,3 л",
+              "price": 220,
+              "available": true,
+              "image": "/demo/coffee.svg"
+            },
+            {
+              "name": "Латте",
+              "size": "0,4 л",
+              "price": 250,
+              "available": true,
+              "image": "/demo/coffee.svg"
+            }
           ]
         },
         {
           "name": "Чай",
           "items": [
-            { "name": "Чай чёрный / зелёный", "size": "0,3 л", "price": 140, "available": true }
+            {
+              "name": "Чай чёрный / зелёный",
+              "size": "0,3 л",
+              "price": 140,
+              "available": true,
+              "image": "/demo/tea.svg"
+            }
           ]
         }
-      ]
+      ],
+      "layout": "list",
+      "effect": "steam"
     }
   ]
 }

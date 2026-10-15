@@ -13,8 +13,12 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'menu.json');
 const DEFAULT_FILE = path.join(__dirname, 'data', 'menu.default.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
+const MEDIA_DIR = path.join(DATA_DIR, 'media');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const MAX_BODY = 1024 * 1024;
+const MAX_UPLOAD = 1024 * 1024 * 1024; // 1 GB per file — enough for a long promo video
+const MEDIA_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.mp4', '.webm']);
+const VIDEO_EXT = new Set(['.mp4', '.webm']);
 const MAX_BACKUPS = 50;
 
 const MIME = {
@@ -28,6 +32,9 @@ const MIME = {
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
   '.ico': 'image/x-icon',
+  '.gif': 'image/gif',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
 };
 
 // ---------- storage ----------
@@ -64,6 +71,12 @@ function validateMenu(menu) {
     const where = `screens[${si}]`;
     if (!Number.isInteger(screen.id) || screen.id < 1) errors.push(`${where}.id must be a positive integer`);
     if (typeof screen.title !== 'string') errors.push(`${where}.title must be a string`);
+    if (screen.layout !== undefined && !['list', 'cards'].includes(screen.layout)) errors.push(`${where}.layout must be list or cards`);
+    checkMedia(errors, `${where}.background`, screen.background);
+    if (screen.promos !== undefined) {
+      if (!Array.isArray(screen.promos)) errors.push(`${where}.promos must be an array`);
+      else screen.promos.forEach((promo, pi) => checkMedia(errors, `${where}.promos[${pi}].file`, promo && promo.file, true));
+    }
     if (!Array.isArray(screen.categories)) {
       errors.push(`${where}.categories must be an array`);
       return;
@@ -81,12 +94,22 @@ function validateMenu(menu) {
         if (typeof item.price !== 'number' || !Number.isFinite(item.price) || item.price < 0) {
           errors.push(`${iw}.price must be a non-negative number`);
         }
+        checkMedia(errors, `${iw}.image`, item.image);
       });
     });
   });
   const ids = (menu.screens || []).map((s) => s.id);
   if (new Set(ids).size !== ids.length) errors.push('screen ids must be unique');
   return errors;
+}
+
+// Pictures and videos are referenced by URL: uploaded ones live under /media/, built-in demo art under /demo/.
+function checkMedia(errors, where, value, required = false) {
+  if (value === undefined || value === null || value === '') {
+    if (required) errors.push(`${where} is required`);
+    return;
+  }
+  if (typeof value !== 'string' || !/^\/(media|demo)\/[^/\\]+$/.test(value)) errors.push(`${where} must be a /media/ or /demo/ file`);
 }
 
 let menu = loadMenu();
@@ -163,6 +186,99 @@ function serveFile(res, file) {
   });
 }
 
+// ---------- media library ----------
+
+function safeMediaName(original) {
+  const ext = path.extname(original).toLowerCase();
+  if (!MEDIA_EXT.has(ext)) return null;
+  const base = path.basename(original, path.extname(original))
+    .replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'file';
+  let name = `${base}${ext}`;
+  for (let n = 2; fs.existsSync(path.join(MEDIA_DIR, name)); n++) name = `${base}-${n}${ext}`;
+  return name;
+}
+
+function listMedia() {
+  if (!fs.existsSync(MEDIA_DIR)) return [];
+  return fs.readdirSync(MEDIA_DIR)
+    .filter((f) => MEDIA_EXT.has(path.extname(f).toLowerCase()))
+    .map((f) => {
+      const st = fs.statSync(path.join(MEDIA_DIR, f));
+      return { url: `/media/${f}`, name: f, size: st.size, video: VIDEO_EXT.has(path.extname(f).toLowerCase()), mtime: st.mtimeMs };
+    })
+    .sort((a, b) => b.mtime - a.mtime);
+}
+
+function mediaInUse(url) {
+  return JSON.stringify(menu).includes(JSON.stringify(url));
+}
+
+function receiveUpload(req, res, original) {
+  const name = safeMediaName(original || '');
+  if (!name) return sendJson(res, 400, { error: 'Можно загружать только картинки (jpg, png, webp, gif, svg) и видео (mp4, webm)' });
+  const declared = Number(req.headers['content-length'] || 0);
+  if (declared > MAX_UPLOAD) return sendJson(res, 413, { error: 'Файл больше 1 ГБ' });
+  fs.mkdirSync(MEDIA_DIR, { recursive: true });
+  const final = path.join(MEDIA_DIR, name);
+  const tmp = `${final}.uploading`;
+  const out = fs.createWriteStream(tmp);
+  let size = 0;
+  let failed = false;
+  const fail = (status, msg) => {
+    if (failed) return;
+    failed = true;
+    out.destroy();
+    fs.rm(tmp, { force: true }, () => {});
+    if (!res.headersSent) sendJson(res, status, { error: msg });
+  };
+  req.on('data', (chunk) => {
+    size += chunk.length;
+    if (size > MAX_UPLOAD) {
+      fail(413, 'Файл больше 1 ГБ');
+      req.destroy();
+    }
+  });
+  req.on('aborted', () => fail(400, 'Загрузка прервана'));
+  out.on('error', () => fail(500, 'Не удалось сохранить файл'));
+  out.on('finish', () => {
+    if (failed) return;
+    if (size === 0) return fail(400, 'Пустой файл');
+    fs.renameSync(tmp, final);
+    sendJson(res, 200, { url: `/media/${name}`, name, size, video: VIDEO_EXT.has(path.extname(name).toLowerCase()) });
+  });
+  req.pipe(out);
+}
+
+// Serves a file from `dir` with HTTP Range support, which TV browsers need to play and loop videos smoothly.
+function serveStatic(req, res, dir, rel, cache) {
+  const resolved = path.resolve(dir, rel);
+  if (!resolved.startsWith(dir + path.sep)) return sendJson(res, 404, { error: 'not found' });
+  fs.stat(resolved, (err, st) => {
+    if (err || !st.isFile()) return sendJson(res, 404, { error: 'not found' });
+    const headers = {
+      'Content-Type': MIME[path.extname(resolved).toLowerCase()] || 'application/octet-stream',
+      'Cache-Control': cache,
+      'Accept-Ranges': 'bytes',
+    };
+    const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    if (range && (range[1] || range[2])) {
+      let start = range[1] ? Number(range[1]) : st.size - Number(range[2]);
+      let end = range[1] && range[2] ? Number(range[2]) : st.size - 1;
+      start = Math.max(0, start);
+      end = Math.min(end, st.size - 1);
+      if (start > end) {
+        res.writeHead(416, { 'Content-Range': `bytes */${st.size}` });
+        return res.end();
+      }
+      res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Content-Length': end - start + 1 });
+      return fs.createReadStream(resolved, { start, end }).pipe(res);
+    }
+    res.writeHead(200, { ...headers, 'Content-Length': st.size });
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(resolved).pipe(res);
+  });
+}
+
 // ---------- routes ----------
 
 async function handle(req, res) {
@@ -202,13 +318,43 @@ async function handle(req, res) {
     return;
   }
 
+  if (p === '/api/media') {
+    if (!requireAuth(req, res)) return;
+    if (req.method === 'GET') return sendJson(res, 200, { files: listMedia() });
+    if (req.method === 'POST') return receiveUpload(req, res, url.searchParams.get('name'));
+    return sendJson(res, 405, { error: 'method not allowed' });
+  }
+
+  if (req.method === 'DELETE' && p.startsWith('/api/media/')) {
+    if (!requireAuth(req, res)) return;
+    const name = decodeURIComponent(p.slice('/api/media/'.length));
+    const file = path.resolve(MEDIA_DIR, name);
+    if (!file.startsWith(MEDIA_DIR + path.sep) || !fs.existsSync(file)) return sendJson(res, 404, { error: 'Файл не найден' });
+    if (mediaInUse(`/media/${name}`)) return sendJson(res, 409, { error: 'Файл используется в меню — сначала уберите его с экранов' });
+    fs.unlinkSync(file);
+    return sendJson(res, 200, { ok: true });
+  }
+
+  if ((req.method === 'GET' || req.method === 'HEAD') && p.startsWith('/media/')) {
+    // Uploaded files never change under the same name, so TVs may cache them for long.
+    return serveStatic(req, res, MEDIA_DIR, decodeURIComponent(p.slice('/media/'.length)), 'public, max-age=86400');
+  }
+
   if (req.method === 'GET' && p === '/api/auth') {
     if (!requireAuth(req, res)) return;
     return sendJson(res, 200, { ok: true });
   }
 
+  if ((req.method === 'GET' || req.method === 'HEAD') && p.startsWith('/demo/')) {
+    return serveStatic(req, res, path.join(PUBLIC_DIR, 'demo'), decodeURIComponent(p.slice('/demo/'.length)), 'public, max-age=3600');
+  }
+
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'method not allowed' });
 
+  if (p === '/favicon.ico') {
+    res.writeHead(204);
+    return res.end();
+  }
   if (p === '/') return serveFile(res, 'index.html');
   if (p === '/admin' || p === '/admin/') {
     if (!requireAuth(req, res)) return;

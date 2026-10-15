@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200">
+  <defs><radialGradient id="k" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fffdf2"/><stop offset="1" stop-color="#f2c14e"/></radialGradient>
+  <clipPath id="b"><path d="M20 90 L120 90 L106 192 L34 192 Z"/></clipPath></defs>
+  <g fill="url(#k)" stroke="#e0a82e" stroke-width="1.5"><circle cx="35" cy="82" r="16"/><circle cx="58" cy="68" r="18"/><circle cx="84" cy="66" r="18"/><circle cx="108" cy="80" r="16"/><circle cx="70" cy="48" r="16"/></g>
+  <path d="M20 90 L120 90 L106 192 L34 192 Z" fill="#fff"/>
+  <g clip-path="url(#b)" fill="#e23b3b"><rect x="18" y="90" width="16" height="110"/><rect x="50" y="90" width="16" height="110"/><rect x="82" y="90" width="16" height="110"/><rect x="114" y="90" width="16" height="110"/></g>
+  <path d="M190 10 L184 60" stroke="#ff4d6d" stroke-width="7" stroke-linecap="round"/>
+  <path d="M140 60 L225 60 L214 192 L151 192 Z" fill="#d62828"/>
+  <path d="M146 100 L219 100 L216 135 L149 135 Z" fill="#fff"/>
+</svg>
